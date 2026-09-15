@@ -1,0 +1,136 @@
+-- ============================================================
+-- FMCG SALES, MARKETING & PROFITABILITY ANALYSIS
+-- PostgreSQL / SQL Analysis
+-- Dataset: 2023–2025
+-- Table: fmcg_sales
+-- ============================================================
+
+
+-- ============================================================
+-- 1. DATA EXPLORATION
+-- ============================================================
+
+-- Check the total number of records
+SELECT COUNT(*) AS total_records
+FROM fmcg_sales;
+
+
+-- Check the table structure and available columns
+SELECT *
+FROM fmcg_sales
+LIMIT 10;
+
+
+-- ============================================================
+-- 2. DATA QUALITY VALIDATION
+-- ============================================================
+
+-- Check for missing values in key analytical fields
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(order_id) AS order_id_count,
+    COUNT(order_date) AS order_date_count,
+    COUNT(country) AS country_count,
+    COUNT(product_name) AS product_name_count,
+    COUNT(units_sold) AS units_sold_count,
+    COUNT(gross_sales_usd) AS gross_sales_count,
+    COUNT(marketing_spend_usd) AS marketing_spend_count,
+    COUNT(profit_usd) AS profit_count
+FROM fmcg_sales;
+
+
+-- ============================================================
+-- 3. DUPLICATE ORDER CHECK
+-- ============================================================
+
+-- Identify duplicate Order IDs
+SELECT
+    order_id,
+    COUNT(*) AS duplicate_count
+FROM fmcg_sales
+GROUP BY order_id
+HAVING COUNT(*) > 1;
+
+
+-- ============================================================
+-- 4. NUMERIC VALIDATION
+-- ============================================================
+
+-- Check the range of key numerical fields
+SELECT
+    MIN(units_sold) AS min_units_sold,
+    MAX(units_sold) AS max_units_sold,
+    MIN(unit_price_usd) AS min_unit_price,
+    MAX(unit_price_usd) AS max_unit_price,
+    MIN(discount_pct) AS min_discount_pct,
+    MAX(discount_pct) AS max_discount_pct
+FROM fmcg_sales;
+
+
+-- ============================================================
+-- 5. GROSS SALES VALIDATION
+-- ============================================================
+
+-- Verify that Gross Sales = Units Sold × Unit Price
+SELECT
+    COUNT(*) AS incorrect_gross_sales_rows
+FROM fmcg_sales
+WHERE ROUND(gross_sales_usd, 2)
+      <> ROUND(units_sold * unit_price_usd, 2);
+
+
+-- ============================================================
+-- 6. NEGATIVE PROFIT ANALYSIS
+-- ============================================================
+
+-- Identify transactions with negative profit
+SELECT
+    COUNT(*) AS negative_profit_records,
+    SUM(profit_usd) AS total_negative_profit,
+    MIN(profit_usd) AS lowest_profit
+FROM fmcg_sales
+WHERE profit_usd < 0;
+
+
+-- ============================================================
+-- 7. YEARLY SALES PERFORMANCE
+-- ============================================================
+
+-- Calculate total gross sales by year
+SELECT
+    year,
+    SUM(gross_sales_usd) AS total_sales
+FROM fmcg_sales
+GROUP BY year
+ORDER BY year;
+
+
+-- ============================================================
+-- 8. YEAR-OVER-YEAR SALES GROWTH
+-- ============================================================
+
+WITH yearly_sales AS (
+    SELECT
+        year,
+        SUM(gross_sales_usd) AS total_sales
+    FROM fmcg_sales
+    GROUP BY year
+)
+SELECT
+    year,
+    total_sales,
+    LAG(total_sales) OVER (ORDER BY year) AS previous_year_sales,
+    ROUND(
+        (
+            (total_sales - LAG(total_sales) OVER (ORDER BY year))
+            / NULLIF(LAG(total_sales) OVER (ORDER BY year), 0)
+        ) * 100,
+        2
+    ) AS growth_percentage
+FROM yearly_sales
+ORDER BY year;
+
+
+-- ============================================================
+-- END OF ANALYSIS
+-- ============================================================
