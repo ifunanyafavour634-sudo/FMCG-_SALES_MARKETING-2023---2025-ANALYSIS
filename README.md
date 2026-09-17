@@ -1,5 +1,6 @@
 # FMCG-_SALES_MARKETING-2023---2025-ANALYSIS
 # FMCG SALES, MARKETING & PROFITABILITY ANALYSIS
+<img width="582" height="327" alt="Screenshot 2026-09-14 165508" src="https://github.com/user-attachments/assets/8e725b32-6d92-46ba-90bf-a2927c3be783" />
 
 ## TABLE OF CONTENTS
 
